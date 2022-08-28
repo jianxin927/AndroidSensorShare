@@ -37,36 +37,6 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     Context context;
 
-    private static final int ACTION_REQUEST_PERMISSIONS = 0x001;
-    /**
-     * 所需的所有权限信息
-     */
-    private static final String[] NEEDED_PERMISSIONS = new String[]{
-            Manifest.permission.WRITE_SETTINGS,//写入设置
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,//写入外部存储
-            Manifest.permission.READ_EXTERNAL_STORAGE,//读取外部存储
-            Manifest.permission.CAMERA,//相机
-            Manifest.permission.READ_PHONE_STATE,//阅读电话状态
-            Manifest.permission.ACCESS_NETWORK_STATE,
-            Manifest.permission.CHANGE_NETWORK_STATE,
-            Manifest.permission.INTERNET
-    };
-    /**
-     * 权限检查
-     * @param neededPermissions 需要的权限
-     * @return 是否全部被允许
-     */
-    protected boolean checkPermissions(String[] neededPermissions) {
-        if (neededPermissions == null || neededPermissions.length == 0) {
-            return true;
-        }
-        boolean allGranted = true;
-        for (String neededPermission : neededPermissions) {
-            allGranted &= ContextCompat.checkSelfPermission(this, neededPermission) == PackageManager.PERMISSION_GRANTED;
-        }
-        return allGranted;
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,21 +50,6 @@ public class MainActivity extends AppCompatActivity {
         appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
 
-
-
-
-
-
-
-
-        if (!checkPermissions(NEEDED_PERMISSIONS)) {
-            ActivityCompat.requestPermissions(this, NEEDED_PERMISSIONS,
-                    ACTION_REQUEST_PERMISSIONS);
-        }
-
-
-
-
         SensorMonitor myMonitor = new SensorMonitor();
         myMonitor.startMonitor(Sensor.TYPE_LIGHT,this);
         context = this;
@@ -105,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
                 Toast.makeText(MainActivity.this, "value:" + String.valueOf(myMonitor.data()), Toast.LENGTH_SHORT).show();
                 UDP_Broadcast udp = null;
-                udp = new UDP_Broadcast();
+                udp = new UDP_Broadcast(context);
                 udp.send("light_sensor:" + String.valueOf(myMonitor.data()));
             }
         });
