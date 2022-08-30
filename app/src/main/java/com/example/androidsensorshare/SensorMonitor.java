@@ -10,7 +10,7 @@ import android.widget.Toast;
 
 public class SensorMonitor implements SensorEventListener{
     private SensorManager lightSensorManager;
-    float sensorValue;
+    float sensorValue = 0;
     public void startMonitor(int sensorType, Context context){
         lightSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         Sensor lightSensor = lightSensorManager.getDefaultSensor(/*Sensor.TYPE_LIGHT*/ sensorType);
