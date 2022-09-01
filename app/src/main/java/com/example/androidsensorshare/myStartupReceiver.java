@@ -17,7 +17,7 @@ class myStartupReceiver extends BroadcastReceiver {
         Toast.makeText(context, intent.getAction(), Toast.LENGTH_LONG).show();
 
         if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) {
-            Intent intentMainActivity = new Intent(context, MainActivity.class);
+            Intent intentMainActivity = new Intent(context, NetSenderActivity.class);
             intentMainActivity.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intentMainActivity);
             Toast.makeText(context, "Auto startup", Toast.LENGTH_LONG).show();

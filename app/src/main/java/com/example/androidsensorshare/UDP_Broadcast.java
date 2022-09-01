@@ -2,32 +2,35 @@ package com.example.androidsensorshare;
 
 import static android.content.Context.WIFI_SERVICE;
 
-import android.Manifest;
-import android.app.Activity;
-import android.app.Application;
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
+import android.os.Looper;
 import android.text.format.Formatter;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 
 public class UDP_Broadcast {
     Context context;
-    public UDP_Broadcast(Context con){ context = con;}
+    int port;
+    String target_ip = new String();
+    boolean autoip;
+    public UDP_Broadcast(Context con, int dstport){
+        context = con;
+        port = dstport;
+    }
+    void setip(String ip){
+        target_ip = ip;
+    }
+    void setautoip(Boolean b){
+        autoip = b;
+    }
     void send(String str){
         new udpBroadCast(str).start();
     }
@@ -36,6 +39,7 @@ public class UDP_Broadcast {
         MulticastSocket sender = null;
         DatagramPacket dj = null;
         InetAddress group = null;
+        DatagramSocket socket = null;
 
         byte[] data = new byte[1024];
         public udpBroadCast(String dataString) {
@@ -43,11 +47,30 @@ public class UDP_Broadcast {
         }
         @Override
         public void run() {
+            super.run();
+            Looper.prepare();
             try {
-                DatagramSocket socket = new DatagramSocket();
+                socket = new DatagramSocket();
                 socket.setBroadcast(true);
-                DatagramPacket sendPacket = new DatagramPacket(data, data.length, getBroadcastAddress(), 51996);
+                boolean a,b,c;
+                a = !autoip;
+                b = !target_ip.isEmpty();
+                c = target_ip.matches("[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$");
+                if(a && b && c)
+                //if(!autoip && !target_ip.isEmpty() && target_ip.matches("[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$"))
+                    group = InetAddress.getByName(target_ip);
+                else {
+                    if(!autoip) {
+                        Toast.makeText(context, "Invalid IP " + target_ip, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    group = getBroadcastAddress();
+                }
+                DatagramPacket sendPacket = new DatagramPacket(data, data.length, group, port);
                 socket.send(sendPacket);
+                socket.close();
+
+                Looper.loop();
             } catch(IOException e) {
                 e.printStackTrace();
             }
@@ -59,6 +82,9 @@ public class UDP_Broadcast {
         WifiManager wifiManager=(WifiManager) context.getApplicationContext().getSystemService(WIFI_SERVICE);
         String ip= Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
         String str = new String();
+        if(ip == "0.0.0.0"){
+            ip = "255.255.255.255";
+        }
         str = ip.replaceFirst("\\.[0-9]{1,3}$", ".255");
         return InetAddress.getByName(str);
     }

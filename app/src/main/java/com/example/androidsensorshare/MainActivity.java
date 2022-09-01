@@ -18,7 +18,6 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
-    private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
     Context context;
 
@@ -36,11 +35,11 @@ public class MainActivity extends AppCompatActivity {
         binding.fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-                Toast.makeText(MainActivity.this, "value:" + String.valueOf(myMonitor.data()), Toast.LENGTH_SHORT).show();
+                 Toast.makeText(MainActivity.this, "value:" + String.valueOf(myMonitor.data()), Toast.LENGTH_SHORT).show();
                 UDP_Broadcast udp = null;
-                udp = new UDP_Broadcast(context);
+                udp = new UDP_Broadcast(context, 51996);
+                udp.setip("");
+                udp.setautoip(false);
                 udp.send("light_sensor:" + String.valueOf(myMonitor.data()));
             }
         });
