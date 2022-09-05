@@ -40,8 +40,8 @@ public class NetSenderActivity extends AppCompatActivity {
     Switch sw;
     TextView iplist;
     UDP_Broadcast udp = null;
-
-    loopsend sender;
+    LoopTransfer sender;
+    Intent startIntent;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,6 +66,8 @@ public class NetSenderActivity extends AppCompatActivity {
         mainActivity = this;
 
         udp = new UDP_Broadcast(51996);
+        sender = new LoopTransfer(udp);//auto destroy when complete
+        startIntent = new Intent(this, MyService.class);
 
         iplist.setText(udp.ip_info);
 
@@ -73,12 +75,12 @@ public class NetSenderActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 if (b) {
-                    udp.assignip(edit_targetip.getText().toString());
-                    sender = new loopsend();//auto destroy when complete
-                    sender.needstop = false;
-                    sender.start();
+                    //udp.assignip(edit_targetip.getText().toString());
+                    //sender.start();
+                    startService(startIntent);
                 }else{
-                    sender.needstop = true;
+                    //sender.needstop = true;
+                    stopService(startIntent);
                 }
             }
         });
@@ -99,56 +101,5 @@ public class NetSenderActivity extends AppCompatActivity {
         });
 
 
-    }
-
-    private  class loopsend extends Thread  implements SensorEventListener{
-        SensorMonitor myMonitor = new SensorMonitor();
-        public Boolean needstop = false;
-        float lastSensorValue, newSensorValue;
-        public loopsend(){
-            lastSensorValue = 0;
-            newSensorValue = 0;
-        }
-        @Override
-        public void onSensorChanged(SensorEvent sensorEvent) {
-            newSensorValue = sensorEvent.values[0];
-            //if(abs(newSensorValue-lastSensorValue) > 50 ){
-            //    lastSensorValue = newSensorValue;
-            //}
-        }
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int i) {
-            if(sensor == ((SensorManager) globalAppClass.globalContext.getSystemService(Context.SENSOR_SERVICE)).
-                    getDefaultSensor(Sensor.TYPE_LIGHT)){
-                switch (i) {
-                    case 0:System.out.println("Unreliable");break;
-                    case 1:System.out.println("Low Accuracy");break;
-                    case 2:System.out.println("Medium Accuracy");break;
-                    case 3://开始monitor的时候会触发一次该函数，当前精度是High
-                        System.out.println("High Accuracy");break;
-                }
-            }
-        }
-        @Override
-        public void run() {
-            super.run();
-            myMonitor.listener = this;
-            myMonitor.startMonitor(Sensor.TYPE_LIGHT,globalAppClass.globalContext);
-            lastSensorValue = -100;//make sure first value valid.
-            while(!needstop){
-                if(abs(newSensorValue-lastSensorValue) > 50 ){
-                    lastSensorValue = newSensorValue;
-                    //udp.send("light_sensor:" + String.valueOf(myMonitor.data()));
-                    udp.send("light_sensor:" + String.valueOf(lastSensorValue));
-                }
-                try {
-                    //Thread.sleep(1000*3);
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            myMonitor.stopMonitor();
-        }
     }
 }

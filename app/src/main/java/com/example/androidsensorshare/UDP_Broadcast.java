@@ -23,6 +23,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 
+//***can not be call in main thread****
 public class UDP_Broadcast {
     int port;
     String ip_assign;
@@ -33,6 +34,11 @@ public class UDP_Broadcast {
     boolean autoip;
     private InetAddress group;
     String TAG = "#####";
+
+    MulticastSocket sender = null;
+    DatagramPacket dj = null;
+    DatagramSocket socket = null;
+
     public UDP_Broadcast( int dstport){
         retrieveipList();
         assignip("255.255.255.255");
@@ -47,7 +53,21 @@ public class UDP_Broadcast {
         autoip = b;
     }
     void send(String str){
-        new udpBroadCast(str).start();
+        byte [] data = new byte[1024];
+        data = str.getBytes();
+        try {
+            if(!isValidIP(ip_final_dest)) {
+                Toast.makeText(globalAppClass.globalContext, "Invalid ip: " + "<"+ip_final_dest+">", Toast.LENGTH_SHORT).show();
+            }else {
+                socket = new DatagramSocket();
+                socket.setBroadcast(true);
+                DatagramPacket sendPacket = new DatagramPacket(data, data.length, group, port);
+                socket.send(sendPacket);
+                socket.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     void updateTarget() {
         try {
@@ -62,36 +82,6 @@ public class UDP_Broadcast {
         }
     }
 
-    private  class udpBroadCast extends Thread {
-        MulticastSocket sender = null;
-        DatagramPacket dj = null;
-        DatagramSocket socket = null;
-
-        byte[] data = new byte[1024];
-        public udpBroadCast(String dataString) {
-            data = dataString.getBytes();
-        }
-        @Override
-        public void run() {
-            try {
-                super.run();
-                Looper.prepare();
-                if(!isValidIP(ip_final_dest)) {
-                    Toast.makeText(globalAppClass.globalContext, "Invalid ip: " + "<"+ip_final_dest+">", Toast.LENGTH_SHORT).show();
-                }else {
-                    socket = new DatagramSocket();
-                    socket.setBroadcast(true);
-                    DatagramPacket sendPacket = new DatagramPacket(data, data.length, group, port);
-                    socket.send(sendPacket);
-                    socket.close();
-                }
-                Looper.loop();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    
     @NonNull
     private String getBroadcastAddress() {
         WifiManager wifiManager = (WifiManager) globalAppClass.globalContext.getSystemService(WIFI_SERVICE);
