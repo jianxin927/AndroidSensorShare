@@ -34,7 +34,6 @@ import java.util.Enumeration;
 public class NetSenderActivity extends AppCompatActivity {
     public
     String TAG = "######";
-    Context mainActivity;
     CheckBox ckbox_autoip;
     EditText edit_targetip;
     Switch sw;
@@ -63,7 +62,7 @@ public class NetSenderActivity extends AppCompatActivity {
         edit_targetip = findViewById(R.id.edit_targetip);
         ckbox_autoip = findViewById(R.id.checkBox_autoip);
 
-        mainActivity = this;
+        globalAppClass.netSenderActivity = this;
 
         udp = new UDP_Broadcast(51996);
         sender = new LoopTransfer(udp);//auto destroy when complete

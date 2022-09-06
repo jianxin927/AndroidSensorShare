@@ -21,7 +21,7 @@ public class MyService extends Service {
         Log.d("####","hehe");
         udp = new UDP_Broadcast(51996);
         sender = new LoopTransfer(udp);//auto destroy when complete
-        udp.assignip("192.168.43.255");
+        udp.assignip(globalAppClass.netSenderActivity.edit_targetip.getText().toString());
         sender.start();
 
         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);

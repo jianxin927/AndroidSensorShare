@@ -6,7 +6,7 @@ import android.content.Context;
 public class globalAppClass extends Application {
     public
     static Context globalContext;
-
+    static NetSenderActivity netSenderActivity;
     public void onCreate(){
         super.onCreate();
         globalContext = getApplicationContext();
