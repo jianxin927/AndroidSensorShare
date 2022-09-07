@@ -54,6 +54,8 @@ public class NetSenderActivity extends AppCompatActivity {
                 Manifest.permission.CHANGE_WIFI_STATE,
                 Manifest.permission.RECEIVE_BOOT_COMPLETED,
                 Manifest.permission.FOREGROUND_SERVICE,
+                Manifest.permission.WAKE_LOCK,
+
         };
         requestPermissions(permissions, 1);
 

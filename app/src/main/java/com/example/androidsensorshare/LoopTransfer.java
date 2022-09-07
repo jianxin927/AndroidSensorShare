@@ -2,6 +2,7 @@ package com.example.androidsensorshare;
 
 import static java.lang.Math.abs;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -9,6 +10,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.net.wifi.WifiManager;
 import android.os.Looper;
+import android.os.PowerManager;
 
 public  class LoopTransfer extends Thread  implements SensorEventListener {
     SensorMonitor myMonitor = new SensorMonitor();
@@ -48,9 +50,23 @@ public  class LoopTransfer extends Thread  implements SensorEventListener {
         myMonitor.startMonitor(Sensor.TYPE_LIGHT,globalAppClass.globalContext);
         lastSensorValue = -100;//make sure first value valid.
 
+        //multicast lock
         WifiManager.MulticastLock lock= ((WifiManager) globalAppClass.globalContext
                 .getSystemService(Context.WIFI_SERVICE)).createMulticastLock("test wifi");
         lock.acquire();
+
+        //wifi lock
+        WifiManager systemServiceWifi = (WifiManager) globalAppClass.globalContext.
+                getSystemService(Context.WIFI_SERVICE);
+        WifiManager.WifiLock mWifiLock = systemServiceWifi.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "WifiLocKManager");
+        mWifiLock.acquire();
+
+        //wake lock
+        PowerManager pm = (PowerManager)globalAppClass.globalContext.getSystemService(Context.POWER_SERVICE);
+        @SuppressLint("InvalidWakeLockTag") PowerManager.WakeLock wl;
+        wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "mywakelock");
+        wl.acquire();
+
         while(!needstop){
             if(abs(newSensorValue-lastSensorValue) > 50 ){
                 lastSensorValue = newSensorValue;
@@ -65,7 +81,9 @@ public  class LoopTransfer extends Thread  implements SensorEventListener {
             }
         }
         myMonitor.stopMonitor();
+        wl.release();
         lock.release();
+        mWifiLock.release();
         Looper.loop();
     }
 
