@@ -17,6 +17,7 @@ public  class LoopTransfer extends Thread  implements SensorEventListener {
     private Boolean needstop = false;
     float lastSensorValue, newSensorValue;
     UDP_Broadcast udp;
+    boolean running = false;
     public LoopTransfer(UDP_Broadcast _udp){
         lastSensorValue = 0;
         newSensorValue = 0;
@@ -42,6 +43,7 @@ public  class LoopTransfer extends Thread  implements SensorEventListener {
             }
         }
     }
+    @SuppressLint("InvalidWakeLockTag")
     @Override
     public void run() {
         Looper.prepare();
@@ -49,24 +51,7 @@ public  class LoopTransfer extends Thread  implements SensorEventListener {
         myMonitor.listener = this;
         myMonitor.startMonitor(Sensor.TYPE_LIGHT,globalAppClass.globalContext);
         lastSensorValue = -100;//make sure first value valid.
-
-        //multicast lock
-        WifiManager.MulticastLock lock= ((WifiManager) globalAppClass.globalContext
-                .getSystemService(Context.WIFI_SERVICE)).createMulticastLock("test wifi");
-        lock.acquire();
-
-        //wifi lock
-        WifiManager systemServiceWifi = (WifiManager) globalAppClass.globalContext.
-                getSystemService(Context.WIFI_SERVICE);
-        WifiManager.WifiLock mWifiLock = systemServiceWifi.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "WifiLocKManager");
-        mWifiLock.acquire();
-
-        //wake lock
-        PowerManager pm = (PowerManager)globalAppClass.globalContext.getSystemService(Context.POWER_SERVICE);
-        @SuppressLint("InvalidWakeLockTag") PowerManager.WakeLock wl;
-        wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "mywakelock");
-        wl.acquire();
-
+        running = true;
         while(!needstop){
             if(abs(newSensorValue-lastSensorValue) > 50 ){
                 lastSensorValue = newSensorValue;
@@ -81,10 +66,8 @@ public  class LoopTransfer extends Thread  implements SensorEventListener {
             }
         }
         myMonitor.stopMonitor();
-        wl.release();
-        lock.release();
-        mWifiLock.release();
         Looper.loop();
+        running = false;
     }
 
     public void shouldStop(){
