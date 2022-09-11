@@ -11,6 +11,7 @@ import android.hardware.SensorManager;
 import android.net.wifi.WifiManager;
 import android.os.Looper;
 import android.os.PowerManager;
+import android.widget.Toast;
 
 public  class LoopTransfer extends Thread  implements SensorEventListener {
     SensorMonitor myMonitor = new SensorMonitor();
@@ -18,6 +19,8 @@ public  class LoopTransfer extends Thread  implements SensorEventListener {
     float lastSensorValue, newSensorValue;
     UDP_Broadcast udp;
     boolean running = false;
+    private boolean forceUpload;
+
     public LoopTransfer(UDP_Broadcast _udp){
         lastSensorValue = 0;
         newSensorValue = 0;
@@ -51,12 +54,17 @@ public  class LoopTransfer extends Thread  implements SensorEventListener {
         myMonitor.listener = this;
         myMonitor.startMonitor(Sensor.TYPE_LIGHT,globalAppClass.globalContext);
         lastSensorValue = -100;//make sure first value valid.
+        Toast.makeText(globalAppClass.globalContext, "start", Toast.LENGTH_SHORT).show();
         running = true;
+        forceUpload = false;
         while(!needstop){
+            if(forceUpload) {
+                udp.send("light_sensor<alarm.force>:" + String.valueOf(newSensorValue));
+                forceUpload = false;
+            }
             if(abs(newSensorValue-lastSensorValue) > 50 ){
                 lastSensorValue = newSensorValue;
-                //udp.send("light_sensor:" + String.valueOf(myMonitor.data()));
-                udp.send("light_sensor:" + String.valueOf(lastSensorValue));
+                udp.send("light_sensor<regular>:" + String.valueOf(lastSensorValue));
             }
             try {
                 //Thread.sleep(1000*3);
@@ -66,11 +74,14 @@ public  class LoopTransfer extends Thread  implements SensorEventListener {
             }
         }
         myMonitor.stopMonitor();
-        Looper.loop();
         running = false;
+        Looper.loop();
     }
 
     public void shouldStop(){
         needstop = true;
+    }
+    public void forceUploadSensorValue(){
+        forceUpload = true;
     }
 }

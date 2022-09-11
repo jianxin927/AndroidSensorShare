@@ -11,7 +11,9 @@ public class globalAppClass extends Application {
     static Context globalContext;
     static NetSenderActivity netSenderActivity;
     private static Ringtone mRingtone;
-
+    public static LoopTransfer sender;
+    public static boolean ringNotify;
+    public static int alarmtime;
     public void onCreate(){
         super.onCreate();
         globalContext = getApplicationContext();
@@ -20,7 +22,8 @@ public class globalAppClass extends Application {
         mRingtone = RingtoneManager.getRingtone(globalContext, mUri);
     }
     public static void PlayNotificationSound() {
-        mRingtone.play();
+       if(ringNotify)
+           mRingtone.play();
     }
 
 }

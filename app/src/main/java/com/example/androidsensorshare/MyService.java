@@ -15,14 +15,10 @@ import android.util.Log;
 import android.widget.Toast;
 
 public class MyService extends Service {
-    UDP_Broadcast udp;
-    LoopTransfer sender;
     private AlarmManager alarmManager;
     private PendingIntent pi;
     Intent intentAlarm;
     public MyService() {
-        udp = new UDP_Broadcast(51996);
-        sender = new LoopTransfer(udp);//auto destroy when complete
         //对于service，alarm会触发onStartCommand，对于Active会触发OnCreate
         intentAlarm = new Intent(globalAppClass.globalContext, MyService.class);
     }
@@ -30,16 +26,17 @@ public class MyService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         pi = PendingIntent.getService(this, 0, intentAlarm, 0);
         alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + (10*60*1000), pi);
+        alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,
+                System.currentTimeMillis() + globalAppClass.alarmtime , pi);
         globalAppClass.PlayNotificationSound();
-        if(sender.running){
+        if(globalAppClass.sender.running){
             //Toast.makeText(globalAppClass.globalContext, "Already started",
             //        Toast.LENGTH_SHORT).show();
+            globalAppClass.sender.forceUploadSensorValue();
             return super.onStartCommand(intent, flags, startId);
         }
 
-        udp.assignip(globalAppClass.netSenderActivity.edit_targetip.getText().toString());
-        sender.start();
+        globalAppClass.sender.start();
 
         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         //创建NotificationChannel
@@ -55,7 +52,7 @@ public class MyService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        sender.shouldStop();
+        globalAppClass.sender.shouldStop();
         alarmManager.cancel(pi);
     }
 

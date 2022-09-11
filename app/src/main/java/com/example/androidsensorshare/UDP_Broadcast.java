@@ -39,15 +39,18 @@ public class UDP_Broadcast {
     DatagramPacket dj = null;
     DatagramSocket socket = null;
 
-    public UDP_Broadcast( int dstport){
+    public UDP_Broadcast(){
         retrieveipList();
         assignip("255.255.255.255");
-        port = dstport;
+        assignport(51995);
         autoip = false;
     }
     void assignip(String ip){
         ip_assign = ip;
         updateTarget();
+    }
+    void assignport(int port){
+        this.port = port;
     }
     void setautoip(Boolean b){
         autoip = b;
@@ -59,9 +62,10 @@ public class UDP_Broadcast {
             if(!isValidIP(ip_final_dest)) {
                 Toast.makeText(globalAppClass.globalContext, "Invalid ip: " + "<"+ip_final_dest+">", Toast.LENGTH_SHORT).show();
             }else {
+                globalAppClass.PlayNotificationSound();
+                DatagramPacket sendPacket = new DatagramPacket(data, data.length, group, port);
                 socket = new DatagramSocket();
                 socket.setBroadcast(true);
-                DatagramPacket sendPacket = new DatagramPacket(data, data.length, group, port);
                 socket.send(sendPacket);
                 socket.close();
             }
