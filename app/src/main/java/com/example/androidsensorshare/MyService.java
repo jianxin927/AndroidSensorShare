@@ -28,7 +28,6 @@ public class MyService extends Service {
         alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
         alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,
                 System.currentTimeMillis() + globalAppClass.alarmtime , pi);
-        globalAppClass.PlayNotificationSound();
         if(globalAppClass.sender.running){
             //Toast.makeText(globalAppClass.globalContext, "Already started",
             //        Toast.LENGTH_SHORT).show();
@@ -52,6 +51,7 @@ public class MyService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        stopForeground(true);
         globalAppClass.sender.shouldStop();
         alarmManager.cancel(pi);
     }
